@@ -1,4 +1,8 @@
-console.log("Обрабатываем заказ");
+// console.log("Обрабатываем заказ");
 const formOrder = $('#order-form');
 
-console.log(formOrder);
+// Обработка отправки формы
+formOrder.on('submit', e => {
+    e.preventDefault();
+    console.log("Form submitting...");
+});
