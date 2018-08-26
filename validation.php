@@ -6,23 +6,41 @@ header('Access-Control-Allow-Origin: *');
 $outMessage = '';
 $data = [];
 
+
+
 // Проверка обязательных полей
 $isError = false;
 if (empty($_POST['name'])) {
   $isError = true;
   $outMessage .= 'Не указано имя.<br>';
 };
-if (empty($_POST['tel'])) {
+if (empty($_POST['phone'])) {
   $isError = true;
   $outMessage .= 'Не указан телефон.<br>';
+};
+if (empty($_POST['email'])) {
+  $isError = true;
+  $outMessage .= 'Не указан email.<br>';
 };
 if (empty($_POST['street'])) {
   $isError = true;
   $outMessage .= 'Не указана улица.<br>';
 };
-if (empty($_POST['house'])) {
+if (empty($_POST['home'])) {
   $isError = true;
   $outMessage .= 'Не указан дом.<br>';
+};
+if (empty($_POST['part'])) {
+  $isError = true;
+  $outMessage .= 'Не указан корпус.<br>';
+};
+if (empty($_POST['appt'])) {
+  $isError = true;
+  $outMessage .= 'Не указана квартира.<br>';
+};
+if (empty($_POST['floor'])) {
+  $isError = true;
+  $outMessage .= 'Не указан этаж.<br>';
 };
 if (empty($_POST['payment'])) {
   $isError = true;
