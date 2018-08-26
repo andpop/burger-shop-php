@@ -59,21 +59,6 @@ function checkFields()
     }
 };
 
-function dbConnectMySqli()
-{
-
-    $mysqli = new mysqli(MYSQL_SERVER, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DB);
-
-    if ($mysqli->connect_errno) {
-        exit("Ошибка при подключении к БД: ".$mysqli->connect_error);
-    }
-
-    if (!$mysqli->set_charset("utf8")){
-        printf("Error: ".$mysqli->error);
-    }
-
-    return $mysqli;
-};
 
 function dbConnectPDO()
 {
@@ -131,16 +116,22 @@ function getIdUser($email)
     return $data[0]['id'];
 };
 
+/**
+ * Добавляет заказ из формы ввода в таблицу orders
+ * @param $idUser - вычисляется заранее через функцию getIdUser
+ * @param $street - приходит из формы
+ * @param $home - приходит из формы
+ * @param $part - приходит из формы
+ * @param $appt - приходит из формы
+ * @param $floor - приходит из формы
+ * @param $comment - приходит из формы
+ * @return string - id добавленной записи в таблице orders
+ */
 function addOrder($idUser, $street, $home, $part, $appt, $floor, $comment)
 {
     global $pdo;
     $query = 'INSERT INTO `orders` (id_user, street, home, part, appt, floor, comment) VALUES (:idUser, :street, :home, :part, :appt, :floor, :comment)';
     $prepare = $pdo->prepare($query);
-    dump($prepare);
-
-    $prepareMapping = ['idUser' => $idUser, 'street' => $street, 'home' => $home, 'part' => $part, 'appt' => $appt, 'floor' => $floor, 'comment' => $comment];
-    dump($prepareMapping);
-
     $prepare->execute(['idUser' => $idUser, 'street' => $street, 'home' => $home, 'part' => $part, 'appt' => $appt, 'floor' => $floor, 'comment' => $comment]);
     return $pdo->lastInsertId();
 };
@@ -150,9 +141,6 @@ function addOrder($idUser, $street, $home, $part, $appt, $floor, $comment)
 
 //checkFields();
 
-// Подключение к БД
-//$mysqli = dbConnectMySqli();
-//$mysqli->set_charset("utf8");
 $pdo = dbConnectPDO();
 authorizeUser($_POST['email'], $_POST['name'], $_POST['phone']);
 $idUser = getIdUser($_POST['email']);
