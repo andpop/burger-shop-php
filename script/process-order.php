@@ -139,87 +139,84 @@ function getOrderCount($userId)
  * @param $appt - приходит из формы
  * @param $floor - приходит из формы
  * @param $comment - приходит из формы
+ * @param $payment - приходит из формы (radiobutton)
+ * @param $callback - приходит из формы (checkbox)
  * @return string - id добавленной записи в таблице orders
  */
-function addOrder($idUser, $street, $home, $part, $appt, $floor, $comment)
+function addOrder($idUser, $street, $home, $part, $appt, $floor, $comment, $payment, $callback)
 {
     global $pdo;
-    $query = 'INSERT INTO `orders` (id_user, street, home, part, appt, floor, comment) VALUES (:idUser, :street, :home, :part, :appt, :floor, :comment)';
+    $query = 'INSERT INTO `orders` (id_user, street, home, part, appt, floor, comment, payment, callback) '.
+        'VALUES (:idUser, :street, :home, :part, :appt, :floor, :comment, :payment, :callback)';
     $prepare = $pdo->prepare($query);
-    $prepare->execute(['idUser' => $idUser, 'street' => $street, 'home' => $home, 'part' => $part, 'appt' => $appt, 'floor' => $floor, 'comment' => $comment]);
+    $prepare->execute(['idUser' => $idUser, 'street' => $street, 'home' => $home, 'part' => $part, 'appt' => $appt,
+        'floor' => $floor, 'comment' => $comment, 'payment' => $payment, 'callback' => $callback]);
     return $pdo->lastInsertId();
 };
 
-//$outMessage = '';
-//$data = [];
+function makeMessage($userId, $orderId) {
+    $name = '<b>'.$_POST['name'].'</b>';
+    $phone = '<b>'.$_POST['phone'].'</b>';
+    $street = '<b>'.(empty($_POST['street']) ? 'Не указана' : $_POST['street']).'</b>';
+    $home = '<b>'.(empty($_POST['home']) ? 'Не указан' : $_POST['home']).'</b>';
+    $part = '<b>'.(empty($_POST['part']) ? 'Не указан' : $_POST['part']).'</b>';
+    $appt = '<b>'.(empty($_POST['appt']) ? 'Не указан' : $_POST['appt']).'</b>';
+    $floor = '<b>'.(empty($_POST['floor']) ? 'Не указан' : $_POST['floor']).'</b>';
+    $comment = '<i>'.(empty($_POST['comment']) ? 'Не указан' : $_POST['comment']).'</i>';
+    if ($_POST['payment'] == 'cashback') {
+        $paymentInfo = "<b>Потребуется сдача</b>";
+    } elseif ($_POST['payment'] == 'card') {
+        $paymentInfo = "<b>Оплата по карте</b>";
+    } else {
+        $paymentInfo = "<b>Не указано</b>";
+    };
 
-//checkFields();
+    $thanks = '';
+    $orderCount = getOrderCount($userId);
+    if ($orderCount == 1) {
+        $thanks = 'Спасибо - это ваш первый заказ';
+    } elseif ($orderCount > 1) {
+        $thanks = "Спасибо! Это уже Ваш $orderCount заказ";
+    };
+
+    $message = '
+      <html>
+          <head>
+              <title>Заказ № '.$orderId.'</title>
+          </head>
+          <body>
+              <p>Заказ № '.$orderId.'</p>
+              <p>Имя: '.$name.' &nbsp;&nbsp;&nbsp;Телефон: '.$phone.'</p>
+              <hr>
+              <p>Ваш заказ будет доставлен по адресу:</p>
+              <p>Улица: '.$street.' Дом: '.$home.' Корпус: '.$part.' Кв.: '.$appt.'</p>
+              <hr>
+              <p>Комментарий: '.$comment.'</p>
+              <hr>
+              <p>Оплата заказа: '.$paymentInfo.'</p>
+              <hr>
+              <p>'.$thanks.'</p>
+              <hr>
+          </body>
+      </html>';
+    return $message;
+};
 
 $pdo = dbConnectPDO();
 authorizeUser($_POST['email'], $_POST['name'], $_POST['phone']);
 $userId = getUserId($_POST['email']);
-$orderId = addOrder($userId, $_POST['street'], $_POST['home'], $_POST['part'], $_POST['appt'], $_POST['floor'], $_POST['comment']);
 
+$callbackNeed = isset($_POST['callback']) ? '0' : '1';
+$orderId = addOrder($userId, $_POST['street'], $_POST['home'], $_POST['part'], $_POST['appt'], $_POST['floor'], $_POST['comment'], $_POST['payment'], $callbackNeed);
 
-
+$message = makeMessage($userId, $orderId);
 $to = 'andrey@localhost'; // Режим тестирования - шлем на локальный адрес
-// $to = 'andpop@mail.ru'; 
+// $to = 'andpop@mail.ru';
 $subject = 'Заказ №';
 
-$name = '<b>'.$_POST['name'].'</b>';
-$phone = '<b>'.$_POST['phone'].'</b>';
-$street = '<b>'.(empty($_POST['street']) ? 'Не указана' : $_POST['street']).'</b>';
-$home = '<b>'.(empty($_POST['house']) ? 'Не указан' : $_POST['house']).'</b>';
-$part = '<b>'.(empty($_POST['part']) ? 'Не указан' : $_POST['part']).'</b>';
-$appt = '<b>'.(empty($_POST['appt']) ? 'Не указан' : $_POST['appt']).'</b>';
-$floor = '<b>'.(empty($_POST['floor']) ? 'Не указан' : $_POST['floor']).'</b>';
-$comment = '<i>'.(empty($_POST['comment']) ? 'Не указан' : $_POST['comment']).'</i>';
-
-$thanks = '';
-$orderCount = getOrderCount($userId);
-if ($orderCount == 1) {
-    $thanks = 'Спасибо - это ваш первый заказ';
-} elseif ($orderCount > 1) {
-    $thanks = "Спасибо! Это уже $orderCount заказ";
-};
-
-
-//$callback_need = isset($_POST['nocallback']) ? 'Нет' : 'Да';
-//$callback_need = '<b>'.$callback_need.'</b>';
-//if ($_POST['payment'] == 'cashback') {
-//  $payment = '<b>Потребуется сдача</b>';
-//} elseif ($_POST['payment'] == 'card') {
-//  $payment = '<b>Оплата картой</b>';
-//} else {
-//  $payment = '<b>Параметры не указаны</b>';
-//};
-
-
-$message = '
-  <html>
-      <head>
-          <title>'.$subject.'</title>
-      </head>
-      <body>
-          <p>Имя: '.$name.'</p>
-          <p>Телефон: '.$phone.'</p>
-          <hr>
-          <p>Ваш заказ будет доставлен по адресу:</p>
-          <p>Улица: '.$street.'</p>
-          <p>Дом: '.$home.'</p>
-          <p>Корпус: '.$part.'</p>
-          <p>Квартира: '.$appt.'</p>
-          <p>Этаж: '.$floor.'</p>
-          <hr>
-          <p>Комментарий: '.$comment.'</p>
-          <hr>
-          <p>'.$thanks.'</p>
-          <hr>
-      </body>
-  </html>';
-//$headers  = "Content-type: text/html; charset=utf-8 \r\n";
-//$headers .= "From: Отправитель <andrvpopov@gmail.com>\r\n";
-//$mail = mail($to, $subject, $message, $headers);
+$headers  = "Content-type: text/html; charset=utf-8 \r\n";
+$headers .= "From: Отправитель <andrvpopov@gmail.com>\r\n";
+$mail = mail($to, $subject, $message, $headers);
 //if ($mail) {
 //  $data['status'] = 'OK';
 //  $data['message'] = 'Заказ отправлен. Менеджер свяжется с Вами в ближайшее время';
