@@ -107,13 +107,27 @@ function authorizeUser($email, $name, $phone)
  * @param $email
  * @return mixed - id клиента из таблицы users
  */
-function getIdUser($email)
+function getUserId($email)
 {
     global $pdo;
     $prepare = $pdo->prepare('SELECT id FROM users where `email` = :email');
     $prepare->execute(['email' => $email]);
     $data = $prepare->fetchAll(PDO::FETCH_ASSOC);
     return $data[0]['id'];
+};
+
+/**
+ * Возвращает количество заказов клиентв по его email
+ * @param $userId
+ * @return mixed - id клиента из таблицы users
+ */
+function getOrderCount($userId)
+{
+    global $pdo;
+    $prepare = $pdo->prepare('SELECT COUNT(id) FROM orders where `id_user` = :idUser');
+    $prepare->execute(['idUser' => $userId]);
+    $data = $prepare->fetchAll(PDO::FETCH_ASSOC);
+    return $data[0]['COUNT(id)'];
 };
 
 /**
@@ -143,8 +157,9 @@ function addOrder($idUser, $street, $home, $part, $appt, $floor, $comment)
 
 $pdo = dbConnectPDO();
 authorizeUser($_POST['email'], $_POST['name'], $_POST['phone']);
-$idUser = getIdUser($_POST['email']);
-$orderNumber = addOrder($idUser, $_POST['street'], $_POST['home'], $_POST['part'], $_POST['appt'], $_POST['floor'], $_POST['comment']);
+$userId = getUserId($_POST['email']);
+$orderId = addOrder($userId, $_POST['street'], $_POST['home'], $_POST['part'], $_POST['appt'], $_POST['floor'], $_POST['comment']);
+
 
 
 $to = 'andrey@localhost'; // Режим тестирования - шлем на локальный адрес
@@ -159,6 +174,16 @@ $part = '<b>'.(empty($_POST['part']) ? 'Не указан' : $_POST['part']).'</
 $appt = '<b>'.(empty($_POST['appt']) ? 'Не указан' : $_POST['appt']).'</b>';
 $floor = '<b>'.(empty($_POST['floor']) ? 'Не указан' : $_POST['floor']).'</b>';
 $comment = '<i>'.(empty($_POST['comment']) ? 'Не указан' : $_POST['comment']).'</i>';
+
+$thanks = '';
+$orderCount = getOrderCount($userId);
+if ($orderCount == 1) {
+    $thanks = 'Спасибо - это ваш первый заказ';
+} elseif ($orderCount > 1) {
+    $thanks = "Спасибо! Это уже $orderCount заказ";
+};
+
+
 //$callback_need = isset($_POST['nocallback']) ? 'Нет' : 'Да';
 //$callback_need = '<b>'.$callback_need.'</b>';
 //if ($_POST['payment'] == 'cashback') {
@@ -168,6 +193,7 @@ $comment = '<i>'.(empty($_POST['comment']) ? 'Не указан' : $_POST['comme
 //} else {
 //  $payment = '<b>Параметры не указаны</b>';
 //};
+
 
 $message = '
   <html>
@@ -186,6 +212,8 @@ $message = '
           <p>Этаж: '.$floor.'</p>
           <hr>
           <p>Комментарий: '.$comment.'</p>
+          <hr>
+          <p>'.$thanks.'</p>
           <hr>
       </body>
   </html>';
