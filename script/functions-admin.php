@@ -26,17 +26,14 @@ function getAllUsers()
 };
 
 /**
- * Возвращает id клиента по его email
- * @param $email
- * @return mixed - id клиента из таблицы users
+ * Возвращает ассоциативный массив со списком всех клиентов
+ * @return array
  */
-function getUserId($email)
+function getAllOrders()
 {
     global $pdo;
-    $prepare = $pdo->prepare('SELECT id FROM users where `email` = :email');
-    $prepare->execute(['email' => $email]);
-    $data = $prepare->fetch(PDO::FETCH_ASSOC);
-    return $data['id'];
-//    $data = $prepare->fetchAll(PDO::FETCH_ASSOC);
-//    return $data[0]['id'];
+    $result = $pdo->query('SELECT name, street, home, part, appt, floor, comment FROM `users`, `orders` WHERE users.id=orders.id_user');
+    $data = $result->fetchAll(PDO::FETCH_ASSOC);
+    return $data;
 };
+

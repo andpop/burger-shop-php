@@ -23,8 +23,9 @@ if (!isset($_GET['show'])) {
 }
 
 if ($_GET['show']=='clients') {
+    echo '<h2>Все клиенты</h2>';
     echo '<table>'.PHP_EOL;
-    echo '<tr><td>Имя</td><td>Email</td><td>Телефон</td></tr>'.PHP_EOL;
+    echo '<tr><td><b>Имя</b></td><td><b>Email</b></td><td><b>Телефон</b></td></tr>'.PHP_EOL;
     $clients = getAllUsers();
     foreach ($clients as $client) {
         echo "<tr><td>{$client['name']}</td><td>{$client['email']}</td><td>{$client['phone']}</td></tr>".PHP_EOL;
@@ -33,10 +34,15 @@ if ($_GET['show']=='clients') {
 };
 
 if ($_GET['show']=='orders') {
-echo "Формируем список заказов";
-?>
-<h2>Выводим список заказов</h2>
-<?php
+    echo '<h2>Все заказы</h2>';
+    echo '<table>'.PHP_EOL;
+    echo '<tr><td><b>Имя</b></td><td><b>Адрес</b></td><td><b>Комментарий</b></td></tr>'.PHP_EOL;
+    $orders = getAllOrders();
+    foreach ($orders as $order) {
+        $address = "ул. {$order['street']}, д. {$order['home']}, к. {$order['part']}, кв. {$order['appt']}";
+        echo "<tr><td>{$order['name']}</td><td>{$address}</td><td>{$order['comment']}</td></tr>".PHP_EOL;
+    };
+    echo '</table>'.PHP_EOL;
 };
 ?>
 </body>
