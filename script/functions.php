@@ -59,7 +59,7 @@ function checkFields()
  */
 function dbConnectPDO()
 {
-    $dsn = "mysql:host=localhost;dbname=burgers;charset=utf8";
+    $dsn = "mysql:host=localhost;dbname=".MYSQL_DB.";charset=utf8";
     $pdo = new PDO($dsn, MYSQL_USER, MYSQL_PASSWORD);
     $pdo->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     return $pdo;
