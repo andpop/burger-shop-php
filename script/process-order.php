@@ -7,12 +7,15 @@ require_once 'connect-params.php';
 require_once 'functions.php';
 
 /**
- * Проверка заполненности полей формы заказа
+ * Проверка заполненности полей формы заказа.
+ * Обязательными считаем поля name, phone, email, street, home, payment
+ * Если обязательные поля не заполнены, то и возвращаем сообщение об этом и выходим.
  */
 function checkFields()
 {
-    // Проверка обязательных полей
     $outMessage = '';
+    $data = [];
+
     $isError = false;
     if (empty($_POST['name'])) {
         $isError = true;
@@ -34,18 +37,6 @@ function checkFields()
         $isError = true;
         $outMessage .= 'Не указан дом.<br>';
     };
-    if (empty($_POST['part'])) {
-        $isError = true;
-        $outMessage .= 'Не указан корпус.<br>';
-    };
-    if (empty($_POST['appt'])) {
-        $isError = true;
-        $outMessage .= 'Не указана квартира.<br>';
-    };
-    if (empty($_POST['floor'])) {
-        $isError = true;
-        $outMessage .= 'Не указан этаж.<br>';
-    };
     if (empty($_POST['payment'])) {
         $isError = true;
         $outMessage .= 'Не выбран способ оплаты.<br>';
@@ -59,7 +50,10 @@ function checkFields()
     }
 };
 
-
+/**
+ * Подключение к базе данных
+ * @return PDO - главный объект PDO
+ */
 function dbConnectPDO()
 {
   $dsn = "mysql:host=localhost;dbname=burgers;charset=utf8";
@@ -69,8 +63,9 @@ function dbConnectPDO()
 };
 
 /**
- * Авторизация клиента по наличию в базе его email
+ * Проверка наличия email клиента в таблице клиентов
  * @param $email - email проверяемого пользователя (должен быть уникальным)
+ * @return bool - true = клиента не было в базе
  */
 function isNewUser($email)
 {
@@ -95,6 +90,12 @@ function addUser($email, $name, $phone)
     $prepare->execute(['email' => $email, 'name' => $name, 'phone' => $phone]);
 };
 
+/**
+ * Авторизация клиента - если его email нет в базе, то информация о нем добавляется в таблицу клиентов
+ * @param $email
+ * @param $name
+ * @param $phone
+ */
 function authorizeUser($email, $name, $phone)
 {
   if (isNewUser($email)) {
@@ -154,6 +155,12 @@ function addOrder($idUser, $street, $home, $part, $appt, $floor, $comment, $paym
     return $pdo->lastInsertId();
 };
 
+/**
+ * Формирование сообщения для отправки клиенту на почту
+ * @param $userId
+ * @param $orderId
+ * @return string
+ */
 function makeMessage($userId, $orderId) {
     $name = '<b>'.$_POST['name'].'</b>';
     $phone = '<b>'.$_POST['phone'].'</b>';
@@ -205,27 +212,41 @@ function makeMessage($userId, $orderId) {
     return $message;
 };
 
+// =======================================================================================================
+
+// !!!!!!!!!!!!!! Для production нужно isDebugMode=false !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+$isDebugMode = true; // Включен режим отладки скрипта
+
+$data = [];
 $pdo = dbConnectPDO();
 authorizeUser($_POST['email'], $_POST['name'], $_POST['phone']);
-$userId = getUserId($_POST['email']);
 
+$userId = getUserId($_POST['email']);
 $callbackNeed = isset($_POST['callback']) ? '0' : '1';
 $orderId = addOrder($userId, $_POST['street'], $_POST['home'], $_POST['part'], $_POST['appt'], $_POST['floor'], $_POST['comment'], $_POST['payment'], $callbackNeed);
+if (!$orderId) {
+  $data['status'] = 'SAVE_ERROR';
+  $data['message'] = 'При сохранении  заказа на сервере произошла ошибка. Извините, пожалуйста, и попробуйте отправить форму еще раз';
+  echo json_encode($data);
+  die();
+};
 
 $message = makeMessage($userId, $orderId);
-$to = 'andrey@localhost'; // Режим тестирования - шлем на локальный адрес
-// $to = 'andpop@mail.ru';
-$subject = 'Заказ №';
+$subject = "Заказ бургеров № {$orderId}";
+$from = '<andrvpopov@gmail.com>';
+if ($isDebugMode) {
+    $to = 'andrey@localhost'; // В режиме тестирования посылаем сообщение на локальный адрес
+} else {
+    $to = $_POST['email'];
+};
 
 $headers  = "Content-type: text/html; charset=utf-8 \r\n";
-$headers .= "From: Отправитель <andrvpopov@gmail.com>\r\n";
+$headers .= "From: Отправитель {$from}\r\n";
 $mail = mail($to, $subject, $message, $headers);
-//if ($mail) {
-//  $data['status'] = 'OK';
-//  $data['message'] = 'Заказ отправлен. Менеджер свяжется с Вами в ближайшее время';
-//} else {
-//  $data['status'] = 'SEND_ERROR';
-//  $data['message'] = 'При отправке заказа на сервере произошла ошибка. <br>Извините, пожалуйста, и попробуйте отправить форму еще раз';
-//};
-//echo json_encode($data);
-echo $message; // Режим тестирования - выводим сформированное сообщение
+if ($isDebugMode) {
+    echo $message; // Режим тестирования - выводим сформированное сообщение
+};
+
+$data['status'] = 'OK';
+$data['message'] = 'Информация о заказе сохранена в базе данных. Подтверждение заказа поступит на вашу электронную почту';
+echo json_encode($data);
