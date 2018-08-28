@@ -2,7 +2,6 @@
 const formOrder = $('#order-form');
 
 // Обработка отправки формы
-/*
 formOrder.on('submit', e => {
     e.preventDefault();
     console.log("Form submitting...");
@@ -25,10 +24,11 @@ formOrder.on('submit', e => {
     ajax.done(msg => {
         let status = msg.status,
             message = msg.message;
+        alert(message);
         console.log(status, message);
     }).fail(function(jqXHR, textStatus) {
+        alert(message);
         console.log(`Ошибка при формировании заказа. Статус: ${textStatus}`);
     });
 
 });
-*/
