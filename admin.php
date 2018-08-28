@@ -1,3 +1,8 @@
+<?php
+require_once 'script/functions-admin.php';
+
+$pdo = dbConnectPDO();
+?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -18,10 +23,13 @@ if (!isset($_GET['show'])) {
 }
 
 if ($_GET['show']=='clients') {
-    echo "Формируем список клиентов";
-?>
-<h2>Выводим список клиентов</h2>
-<?php
+    echo '<table>'.PHP_EOL;
+    echo '<tr><td>Имя</td><td>Email</td><td>Телефон</td></tr>'.PHP_EOL;
+    $clients = getAllUsers();
+    foreach ($clients as $client) {
+        echo "<tr><td>{$client['name']}</td><td>{$client['email']}</td><td>{$client['phone']}</td></tr>".PHP_EOL;
+    };
+    echo '</table>'.PHP_EOL;
 };
 
 if ($_GET['show']=='orders') {
