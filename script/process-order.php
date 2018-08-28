@@ -191,6 +191,9 @@ function makeMessage($userId, $orderId) {
               <p>Ваш заказ будет доставлен по адресу:</p>
               <p>Улица: '.$street.' Дом: '.$home.' Корпус: '.$part.' Кв.: '.$appt.'</p>
               <hr>
+              <p>Вы заказали:</p>
+              <p><b>DarkBeefBurger - 500 руб - 1 шт</b></p>
+              <hr>
               <p>Комментарий: '.$comment.'</p>
               <hr>
               <p>Оплата заказа: '.$paymentInfo.'</p>
