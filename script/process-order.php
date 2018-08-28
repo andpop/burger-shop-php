@@ -36,7 +36,7 @@ if ($isDebugMode) {
 
 $headers  = "Content-type: text/html; charset=utf-8 \r\n";
 $headers .= "From: Отправитель {$from}\r\n";
-//$mail = mail($to, $subject, $message, $headers);
+$mail = mail($to, $subject, $message, $headers);
 if ($isDebugMode) {
     echo $message; // Режим тестирования - выводим сформированное сообщение
 };
