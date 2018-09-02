@@ -1,0 +1,12 @@
+<h2>Все заказы</h2>
+<table>
+<tr><td><b>Имя</b></td><td><b>Адрес</b></td><td><b>Комментарий</b></td></tr>
+    {% for order in orders %}
+        {% set address = 'ул. ' . order.street %}
+        <tr>
+                <td>{{ order.name }}</td>
+                <td>{{ "ул. #{order.street}, д. #{order.home}, к. #{order.part}, кв. #{order.appt}" }}</td>
+                <td>{{ order.comment }}</td>
+        </tr>
+    {% endfor %}
+</table>

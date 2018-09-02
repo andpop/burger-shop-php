@@ -1,0 +1,7 @@
+<h2>Все клиенты</h2>
+<table>
+    <tr><td><b>Имя</b></td><td><b>Email</b></td><td><b>Телефон</b></td></tr>
+    {% for client in clients %}
+        <tr><td>{{ client.name }}</td><td>{{ client.email }}</td><td>{{ client.phone }}</td></tr>
+    {% endfor %}
+</table>
