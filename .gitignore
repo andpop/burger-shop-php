@@ -1,0 +1,7 @@
+.idea/
+.git/
+log/
+vendor/
+script/connect-params-server.php
+burgers_jiino.sql
+
